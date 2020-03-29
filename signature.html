@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta content="yes" name="apple-mobile-web-app-capable"/>
+    <meta content="yes" name="apple-touch-fullscreen">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style"/>
+    <meta content="telephone=no,email=no" name="format-detection">
+    <link href="https://cdn.bootcss.com/normalize/8.0.1/normalize.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcss.com/jquery-weui/1.2.1/css/jquery-weui.css" rel="stylesheet">
+    <link href="https://cdn.bootcss.com/jquery-weui/1.2.1/css/jquery-weui.min.css" rel="stylesheet">
+    <title>在线签字</title>
+    <style>
+        * {
+            touch-action: none;
+        }
+        .tanOther {
+            transform: rotate(90deg);
+            -ms-transform: rotate(90deg);
+            -moz-transform: rotate(90deg);
+            -webkit-transform: rotate(90deg);
+            -o-transform: rotate(90deg);
+            top: 40%!important;left: 25%!important;
+        }
+        .loadingOther {
+            transform: rotate(90deg);
+            -ms-transform: rotate(90deg);
+            -moz-transform: rotate(90deg);
+            -webkit-transform: rotate(90deg);
+            -o-transform: rotate(90deg);
+            top: -4%!important;left: 40%!important;
+        }
+        @media screen and (orientation: landscape) {
+            .hd-body {
+                display: none;
+            }
+        }
+
+        body {
+            background: #f4f4f4;
+        }
+
+        .hd-body {
+            width: 100%;
+            height: 2.2rem;
+            display: block;
+            text-align: center;
+            background: #fff;
+            line-height: 2.2rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .g-signature-title {
+            padding-left: .5rem;
+            font-size: .9rem;
+            color: #666;
+            font-weight: bold;
+            margin-bottom: .5rem;
+            text-align: center;
+            transform: rotate(90deg);
+            -ms-transform: rotate(90deg);
+            -moz-transform: rotate(90deg);
+            -webkit-transform: rotate(90deg);
+            -o-transform: rotate(90deg);
+            position: absolute;
+            right: -1.6rem;
+            top: 13rem;
+            display: flex;
+            align-items: center;
+        }
+        .g-signature-title #img{
+            position: absolute;
+            left: -10rem;
+            width: 8%;
+        }
+        .g-signatrue-body {
+            background: #fff;
+            height: 100vh;
+            margin-left: 4.2rem;
+            width: 64vw;
+        }
+
+        .g-signatrue-body>.jSignature {
+            height: 100%!important;
+        }
+        .g-btns {
+            text-align: center;
+            margin-top: 1rem;
+            transform:rotate(90deg);
+            -ms-transform:rotate(90deg); 	/* IE 9 */
+            -moz-transform:rotate(90deg); 	/* Firefox */
+            -webkit-transform:rotate(90deg); /* Safari 和 Chrome */
+            -o-transform:rotate(90deg);
+            position: absolute;
+            top: 12rem;
+            left: -6rem;
+        }
+        .g-btns>button {
+            width: 7.5rem;
+            height: 2.25rem;
+            font-size: .9rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 1rem;
+        }
+        .u-reset {
+            background: #ddd;
+            color: #666;
+            margin-right: .5rem;
+        }
+
+        .u-submit {
+            background: #fc4949;
+            color: #fff;
+            margin-left: .5rem;
+        }
+
+    </style>
+</head>
+<body>
+<div class="g-signature-title">
+    <img src="../../images/arrow.png" id="img"/>
+    <span>报名人签字：</span>
+</div>
+<div class="g-signatrue-body">
+</div>
+<div class="g-btns">
+    <button class="u-reset">重新签字</button>
+    <button class="u-submit">确认</button>
+</div>
+<div id="tanwin" class="tan tanOther" style="display:none;"></div>
+<div id="loading" class="loadingOther" style="display: none;">
+    <div class="weui-loadmore" style="width: 45%;">
+        <i class="weui-loading"></i>
+        <span class="weui-loadmore__tips">正在加载中...</span>
+    </div>
+</div>
+<!--<div id="fullMask" style="display:none;width: 100vw;height: 100vh;position: fixed;top: 0;left: 0;background: #000;opacity: .4">-->
+
+<!--</div>-->
+</body>
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/jquery-weui/1.2.1/js/jquery-weui.js"></script>
+
+<script src="https://cdn.bootcss.com/jSignature/2.1.2/flashcanvas.min.js"></script>
+<script src="https://cdn.bootcss.com/jSignature/2.1.3/jSignature.min.js"></script>
+<script>
+    //初始化签字插件
+
+    new Promise(function (resolve) {
+        $(".g-signatrue-body").jSignature({color: "#000000", lineWidth: 2});
+        resolve()
+    }).then(function () {
+        var hiddenWidth = $(".g-signatrue-body").css('width');
+        var hiddenHeight = $(".g-signatrue-body").css('height');
+
+        /**
+         * signatureData
+         * 用于存储用户签名数据
+         * @type {string}
+         */
+        var signatureData = '';
+
+        /**
+         * isDraw
+         * 用于判断用户是否已签字，是则true,否则false,默认false.
+         * @type {boolean}
+         */
+        var isDraw = false;
+        var isBtns=false;
+//用户触摸事件，只要有触摸，isDraw则变为true.
+        $('body').on('touchmove', '.jSignature', function () {
+            isDraw = true;
+        });
+
+//重置按钮点击事件，只要点击重置，isDraw则恢复默认.
+        $('.u-reset').on('click', function () {
+            $(".g-signatrue-body").jSignature('reset');
+            isDraw = false;
+        });
+
+//用户提交签名
+        $('.u-submit').on('click', function () {
+            if(isBtns)return;
+            isBtns=true;
+            $('.loadingOther').show();
+            //重置变量并获取数据
+            signatureData = '';
+            signatureData = $(".g-signatrue-body").jSignature('getData', 'default');
+            $('.hide-canvas').remove();
+            //这里请勿修改，因为是签名旋转90度，所以之前的长就显示现在的宽，之前的宽就是现在的长。
+            $('body').append('<canvas style="display: none;" class="hide-canvas" width="' + hiddenHeight + '" height="' + hiddenWidth + '"></canvas>');
+            var ctx = document.querySelector('.hide-canvas').getContext("2d");
+            var img = new Image();
+            img.src = signatureData;
+            img.onload = function (ev) {
+                var width = Math.round($('.jSignature').css('height').replace('px', '') / 2);
+                var height = Math.round($('.jSignature').css('width').replace('px', '') / 2);
+                ctx.save();
+                ctx.translate(width, height);
+                ctx.rotate(-90 * Math.PI / 180)
+                ctx.drawImage(img, -img.width / 2, -img.height / 2);
+                ctx.restore();
+                if (!isDraw) {
+                    $('.loadingOther').hide();
+                    tanwin('您还未签名');
+                    isBtns=false;
+                } else {
+                    //jzjy.ajax()
+                }
+            };
+        });
+
+    })
+    $('#img').on("click",function(){
+        window.history.back(-1);
+        //self.location=document.referrer
+    })
+
+</script>
+</html>
